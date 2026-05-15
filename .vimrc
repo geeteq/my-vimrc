@@ -8,11 +8,11 @@ set nocompatible                " disable vi compatibility
 filetype plugin indent on       " filetype detection + plugins + indent
 syntax enable                   " syntax highlighting on
 set encoding=utf-8
-set fileencoding=utf-8
+set fileencodings=ucs-bom,utf-8,default,latin1
 set hidden                      " allow switching buffers w/o saving
 set autoread                    " reload files changed outside vim
 set backspace=indent,eol,start  " sane backspace
-set mouse=a                     " mouse support in all modes
+set mouse=                      " mouse off — let the terminal handle selection/copy
 set clipboard^=unnamed,unnamedplus
 set ttyfast
 set lazyredraw                  " don't redraw while executing macros
@@ -53,6 +53,26 @@ set noerrorbells novisualbell
 set shortmess+=cI               " no intro, no completion-menu noise
 set laststatus=2                " always show statusline
 set noshowmode                  " statusline shows mode, hide default
+
+" Hidden whitespace off by default — toggle with <leader>l
+let g:show_list = 0
+set nolist
+set listchars=eol:¬,tab:▸\ ,trail:·,nbsp:␣,extends:»,precedes:«
+augroup ForceList
+  autocmd!
+  autocmd BufWinEnter,WinEnter * if &buftype ==# ''
+        \ | execute 'setlocal ' . (get(g:, 'show_list', 1) ? 'list' : 'nolist')
+        \ | endif
+augroup END
+function! ToggleList() abort
+  let g:show_list = !get(g:, 'show_list', 1)
+  windo if &buftype ==# '' | execute 'setlocal ' . (g:show_list ? 'list' : 'nolist') | endif
+  echo 'listchars ' . (g:show_list ? 'shown' : 'hidden — clean copy mode')
+endfunction
+" Dim the listchars so they don't drown out the code
+highlight NonText    guifg=#3a3a3a guibg=NONE
+highlight SpecialKey guifg=#3a3a3a guibg=NONE
+highlight Whitespace guifg=#3a3a3a guibg=NONE
 
 " --- Search -----------------------------------------------------------------
 set ignorecase smartcase        " case-insensitive unless capital used
@@ -187,10 +207,10 @@ highlight StlLine        guibg=#00ff5f guifg=#000000 gui=bold
 
 function! StatusModeColor() abort
   let l:m = mode()
-  if l:m ==# 'i'              | return '%#StlModeInsert#'
-  elseif l:m =~# '\v(v|V|)' | return '%#StlModeVisual#'
-  elseif l:m ==# 'R'          | return '%#StlModeReplace#'
-  elseif l:m ==# 'c'          | return '%#StlModeCommand#'
+  if l:m ==# 'i'                    | return '%#StlModeInsert#'
+  elseif l:m =~# "^[vV\<C-v>]$"     | return '%#StlModeVisual#'
+  elseif l:m ==# 'R'                | return '%#StlModeReplace#'
+  elseif l:m ==# 'c'                | return '%#StlModeCommand#'
   endif
   return '%#StlMode#'
 endfunction
@@ -238,6 +258,9 @@ nnoremap <leader>Q :qa!<CR>
 " Clear search highlight
 nnoremap <silent> <leader><space> :nohlsearch<CR>
 
+" Toggle listchars display (for clean text copy)
+nnoremap <silent> <leader>l :call ToggleList()<CR>
+
 " Better window navigation
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
@@ -250,9 +273,9 @@ nnoremap <silent> <C-Down>  :resize -2<CR>
 nnoremap <silent> <C-Left>  :vertical resize -2<CR>
 nnoremap <silent> <C-Right> :vertical resize +2<CR>
 
-" Buffer navigation
-nnoremap <silent> <Tab>   :bnext<CR>
-nnoremap <silent> <S-Tab> :bprevious<CR>
+" Buffer navigation (avoid mapping <Tab> — it collides with <C-i> jump-forward)
+nnoremap <silent> ]b :bnext<CR>
+nnoremap <silent> [b :bprevious<CR>
 nnoremap <silent> <leader>x :bdelete<CR>
 
 " Stay in visual mode after indent
@@ -286,9 +309,12 @@ augroup RestoreCursor
 augroup END
 
 " Strip trailing whitespace on save (toggle with :let g:strip_ws=0)
+" Skipped for filetypes where trailing whitespace is meaningful
 let g:strip_ws = 1
+let g:strip_ws_skip_ft = ['markdown', 'diff', 'patch', 'mail', 'gitcommit']
 function! StripTrailingWhitespace() abort
   if get(g:, 'strip_ws', 1) == 0 | return | endif
+  if index(g:strip_ws_skip_ft, &filetype) >= 0 | return | endif
   let l:save = winsaveview()
   keeppatterns %s/\s\+$//e
   call winrestview(l:save)

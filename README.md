@@ -18,7 +18,8 @@ Open vim — directories for undo/swap/backup are auto-created on first launch.
 
 ### Core behavior
 - `nocompatible`, filetype detection + indent plugins, syntax on
-- `hidden` buffers, `autoread`, system clipboard integration, mouse support in all modes
+- `hidden` buffers, `autoread`, system clipboard integration
+- **Mouse off** by default — terminal handles native text selection (so macOS Cmd-C works on selected text)
 - Persistent undo, swap, and backup files in `~/.vim/{undo,swap,backup}` (auto-created)
 
 ### UI
@@ -49,7 +50,20 @@ Open vim — directories for undo/swap/backup are auto-created on first launch.
   - bright orange numbers
   - yellow types
 - Diff colors with deep saturated backgrounds
-- Trailing whitespace highlighted in red, auto-stripped on save (toggle: `:let g:strip_ws=0`)
+- Trailing whitespace highlighted in red, auto-stripped on save (toggle: `:let g:strip_ws=0`; skipped for `markdown`, `diff`, `patch`, `mail`, `gitcommit`)
+
+### Hidden whitespace display
+Off by default for clean copy-paste. Toggle with `<leader>l` to show:
+
+| Marker | Means              |
+|--------|--------------------|
+| `¬`    | end of line        |
+| `▸`    | tab character      |
+| `·`    | trailing space     |
+| `␣`    | non-breaking space |
+| `»` `«`| line overflow      |
+
+Markers are dim grey so they don't compete with code.
 
 ### Statusline (custom, no plugins)
 Color-coded by mode:
@@ -82,11 +96,12 @@ Leader key: `<Space>`
 | `<leader>q`         | Quit                            |
 | `<leader>Q`         | Quit all (force)                |
 | `<leader><space>`   | Clear search highlight          |
+| `<leader>l`         | Toggle hidden whitespace display|
 | `<leader>e`         | Toggle file explorer (netrw)    |
 | `<leader>x`         | Delete buffer                   |
 | `<C-h/j/k/l>`       | Navigate splits                 |
 | `<C-Up/Down/L/R>`   | Resize splits                   |
-| `<Tab>` / `<S-Tab>` | Next / previous buffer          |
+| `]b` / `[b`         | Next / previous buffer          |
 | `Y`                 | Yank to end of line (like D, C) |
 | `n` / `N`           | Search next/prev, centered      |
 | `<C-d>` / `<C-u>`   | Half-page scroll, centered      |
