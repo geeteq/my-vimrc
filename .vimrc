@@ -262,10 +262,14 @@ nnoremap <silent> <leader><space> :nohlsearch<CR>
 nnoremap <silent> <leader>l :call ToggleList()<CR>
 
 " Better window navigation
+" <C-l> intentionally NOT remapped — reserved for redraw + :nohlsearch below.
+" Use <C-w>l for window-right (vim default).
 nnoremap <C-h> <C-w>h
 nnoremap <C-j> <C-w>j
 nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
+
+" Ctrl-L: redraw screen and clear search highlight (vim's default + :nohl)
+nnoremap <silent> <C-l> :nohlsearch<bar>diffupdate<CR><C-l>
 
 " Resize splits
 nnoremap <silent> <C-Up>    :resize +2<CR>
